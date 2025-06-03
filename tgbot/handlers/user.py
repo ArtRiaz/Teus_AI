@@ -1,170 +1,223 @@
 import logging
-
+import random
+import asyncio
+from typing import Optional
+from datetime import datetime, timedelta
 from aiogram import Router, types, Bot, F
-from aiogram.filters import CommandStart, CommandObject
-from aiogram.types import Message, CallbackQuery
-from tgbot.keyboards.inline import start_keyboard_user
-from aiogram.utils.deep_linking import create_start_link
-from infrastructure.database.repo.request import RequestsRepo
-from aiogram.types import FSInputFile
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.types import FSInputFile
-import os
+from aiogram.filters import CommandStart, CommandObject, StateFilter, Command
+from aiogram.types import Message, CallbackQuery, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton, \
+    KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import StateFilter, Command
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy import select, update
+import redis.asyncio as redis
+import json
+import os
 
-user_router = Router()
+import aiohttp
+from tgbot.keyboards.inline import start_keyboard_user, start_keyboard_user_db
+from infrastructure.database.repo.requests import RequestsRepo
+from infrastructure.database.model.user import User
 
-photo = FSInputFile("tgbot/Main-Pic.jpg")
+import ssl
 
-caption = ("Unitech Solar — Інженерні рішення для сонячної енергетики\n"
-           "під будь-які завдання\n"
-           "Ми не просто продаємо обладнання — ми створюємо ефективні системи для вашого бізнесу")
+# Настройка логгера
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+auth_router = Router()
 
-@user_router.message(CommandStart())
-@user_router.callback_query(F.data == 'start')
-async def start(event: Message | CallbackQuery, bot: Bot, repo: RequestsRepo):
-    # Определяем тип события
-    if isinstance(event, Message):
-        user_name = event.from_user.username or "гость"
-        await event.answer_photo(
-            photo=photo,
-            caption=f"Вiтаю, {user_name}!\n{caption}",
-            reply_markup=start_keyboard_user()
-        )
+# Загружаем фото для стартового сообщения
+photo = FSInputFile("tgbot/app_main.png")
+video = FSInputFile("tgbot/IMG_5671.MP4")
 
-    elif isinstance(event, CallbackQuery):
-        user_name = event.from_user.username or "гость"
-        await bot.send_photo(
-            chat_id=event.message.chat.id,
-            photo=photo,
-            caption=f"Вiтаю, {user_name}!\n{caption}",
-            reply_markup=start_keyboard_user()
-        )
-        await bot.answer_callback_query(event.id)
+data = [1064938479, "is_active"]
+
+# auth_codes_storage = {}
+#
+# TURBOSMS_TOKEN = "1788d501ba72f6ef0274fe4fa0196539d80b177f"
 
 
-@user_router.callback_query(F.data == "back")
-async def about(callback_query: types.CallbackQuery):
-    await callback_query.message.answer_photo(photo=photo,
-                                              caption=f"{caption}",
-                                              reply_markup=start_keyboard_user())
-    await callback_query.message.edit_reply_markup()
-    await callback_query.message.delete()
-    await callback_query.answer()
+# Состояния для авторизации
+# class AuthStates(StatesGroup):
+#     waiting_phone = State()
+#     waiting_code = State()
 
 
-@user_router.callback_query(F.data == "online")
-async def online(callback_query: types.CallbackQuery, bot: Bot):
-    user_name = callback_query.from_user.username
-    keyboards = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="Вiдповiсти клiєнту", url=f"https://t.me/{user_name}")]
-        ]
-    )
-    await bot.send_message(chat_id=-1002185862798,
-                           text="📞 Виклик оператора",
-                           reply_markup=keyboards)
+caption_ukr = ("Ласкаво просимо до Teus – вашого надійного партнера у світі логістики"
+               "Ми перетворюємо складність доставки на простоту рішень"
+               "У динамічному світі сучасної торгівлі кожна хвилина має значення. Компанія Teus розуміє це як ніхто "
+               "інший. Ми – це команда професіоналів, які об'єднали багаторічний досвід, передові технології та "
+               "пристрасть до досконалості, щоб забезпечити безперебійну роботу вашого бізнесу.")
 
 
-@user_router.message(F.text == "Админ")
-async def get_admin_menu(message: types.Message, bot: Bot):
-    keyboards = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="База Данних", callback_data="database")],
-            [InlineKeyboardButton(text="Розсилання", callback_data="send")]
-        ]
-    )
-    await message.bot.send_message(chat_id=-1002185862798, text="Меню Адмiнiстратора", reply_markup=keyboards)
+@auth_router.message(CommandStart())
+async def start(message: Message):
+    user_id = message.from_user.id
+    await message.answer_video(video, caption=caption_ukr, reply_markup=start_keyboard_user_db())
+    # await message.answer_photo(photo, caption=caption_ukr, reply_markup=start_keyboard_user_db())
 
 
-@user_router.callback_query(F.data == "database")
-async def get_database(callback: types.CallbackQuery, repo: RequestsRepo):
-    """
-    Обработчик кнопки "База Данних". Сохраняет всех пользователей (user_id и username) в txt-файл и отправляет его.
-    """
-    try:
-        # Получаем пользователей через репозиторий
-        users = await repo.count_users.count_users()
+@auth_router.callback_query(F.data == "back_main")
+async def answer_list(callback: CallbackQuery):
+    # Удаляем текущее сообщение и отправляем новое
+    await callback.message.delete()
+    await callback.message.answer("Зачикайте ...")
+    await callback.message.answer_video(video, caption=caption_ukr, reply_markup=start_keyboard_user_db())
+    # await callback.message.answer_photo(
+    #     photo,
+    #     caption=caption_ukr,
+    #     reply_markup=start_keyboard_user_db()
+    # )
 
-        # Проверяем, есть ли пользователи
-        if not users:
-            await callback.message.answer("База даних порожня.")
-            return
+# @auth_router.callback_query(F.data == "auth")
+# async def auth_system(callback: CallbackQuery, state: FSMContext):
+#     await callback.message.answer(
+#         "Введите свой номер телефона в формате +380XXXXXXXXX:"
+#     )
+#     await state.set_state(AuthStates.waiting_phone)
 
-        # Формируем список пользователей
-        user_list = "\n".join([f"{user_id} - {username or 'No username'}" for user_id, username in users])
-
-        # Сохраняем список в текстовый файл
-        file_path = "users_database.txt"
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write("Список користувачів бази даних:\n\n")
-            file.write(user_list)
-
-        # Отправляем файл пользователю
-        file_to_send = FSInputFile(file_path)
-        await callback.message.answer_document(file_to_send, caption="Список користувачів бази даних.")
-
-    except Exception as e:
-        # Логируем ошибку и уведомляем пользователя
-        logging.error(f"Ошибка при получении данных из базы: {e}")
-        await callback.message.answer("Сталася помилка під час отримання даних із бази. Спробуйте пізніше.")
-
-    finally:
-        # Удаляем файл после отправки
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-
-@user_router.callback_query(F.data == "send")
-async def broadcast_message(callback: types.CallbackQuery, state: FSMContext):
-    """
-    Обработчик кнопки "Розсилання". Запрашивает текст для рассылки.
-    """
-    await state.set_state("broadcast")
-    await callback.message.answer("Введіть текст повідомлення для розсилання:")
-
-@user_router.message(StateFilter("broadcast"))
-async def process_broadcast_message(message: types.Message, state: FSMContext, repo: RequestsRepo, bot: Bot):
-    """
-    Обработчик рассылки сообщений всем пользователям из базы данных.
-    """
-    # Текст для рассылки
-    broadcast_text = message.text
-
-    try:
-        # Получаем всех пользователей из базы данных
-        users = await repo.count_users.count_users()  # [(user_id, username), ...]
-
-        # Проверяем, есть ли пользователи
-        if not users:
-            await message.answer("База даних порожня. Немає кому розсилати повідомлення.")
-            await state.clear()
-            return
-
-        # Рассылка сообщений
-        success_count = 0
-        fail_count = 0
-        for user_id, username in users:
-            try:
-                await bot.send_message(chat_id=user_id, text=broadcast_text)
-                success_count += 1
-            except Exception as e:
-                logging.error(f"Не вдалося відправити повідомлення користувачу {user_id}: {e}")
-                fail_count += 1
-
-        # Сообщение админу об итогах рассылки
-        await message.answer(
-            f"Розсилка завершена!\n"
-            f"Успішно: {success_count}\n"
-            f"Не вдалося: {fail_count}"
-        )
-
-    except Exception as e:
-        # Логируем ошибку и уведомляем администратора
-        logging.error(f"Помилка під час розсилки: {e}")
-        await message.answer("Сталася помилка під час розсилання. Спробуйте пізніше.")
-
-    # Очистка состояния
-    await state.clear()
+# @auth_router.message(AuthStates.waiting_phone)
+# async def handle_phone_number(message: Message, state: FSMContext):
+#     phone = message.text.strip()
+#
+#     # Исправляем проверку формата номера (для Украины)
+#     if not phone.startswith("+380") or len(phone) != 13 or not phone[1:].isdigit():
+#         await message.answer("Номер должен быть в формате +380XXXXXXXXX.")
+#         return
+#
+#     code = random.randint(1000, 9999)
+#     auth_codes_storage[message.from_user.id] = {
+#         "code": str(code),
+#         "expires": datetime.now() + timedelta(minutes=5)
+#     }
+#
+#     # Создаём небезопасный SSL-контекст (временно, для теста)
+#     ssl_context = ssl.create_default_context()
+#     ssl_context.check_hostname = False
+#     ssl_context.verify_mode = ssl.CERT_NONE
+#
+#     # Отправка СМС через TurboSMS согласно документации
+#     async with aiohttp.ClientSession() as session:
+#         headers = {
+#             "Authorization": f"Bearer {TURBOSMS_TOKEN}",
+#             "Content-Type": "application/json"
+#         }
+#
+#         payload = {
+#             "recipients": [phone],
+#             "sms": {
+#                 "text": f"Ваш код авторизации: {code}"
+#             }
+#         }
+#
+#         try:
+#             async with session.post(
+#                     "https://api.turbosms.ua/message/send.json",
+#                     headers=headers,
+#                     json=payload,
+#                     ssl=ssl_context
+#             ) as resp:
+#                 response_text = await resp.text()
+#                 logger.info(f"TurboSMS response status: {resp.status}")
+#                 logger.info(f"TurboSMS response: {response_text}")
+#
+#                 if resp.status == 200:
+#                     response_data = await resp.json() if resp.content_type == 'application/json' else None
+#                     if response_data:
+#                         logger.info(f"Response data: {response_data}")
+#
+#                     await message.answer("Код отправлен по СМС. Введите его:")
+#                     await state.set_state(AuthStates.waiting_code)
+#                 else:
+#                     await message.answer(f"Ошибка при отправке СМС (код {resp.status}). Попробуйте позже.")
+#                     logger.error(f"SMS sending failed: {resp.status} - {response_text}")
+#
+#         except Exception as e:
+#             logger.error(f"Exception during SMS sending: {e}")
+#             await message.answer("Ошибка при отправке СМС. Попробуйте позже.")
+#
+#
+# # Функция для получения списка доступных отправителей SMS
+# async def get_available_sms_senders():
+#     """Получение списка доступных SMS отправителей"""
+#     ssl_context = ssl.create_default_context()
+#     ssl_context.check_hostname = False
+#     ssl_context.verify_mode = ssl.CERT_NONE
+#
+#     async with aiohttp.ClientSession() as session:
+#         headers = {"Authorization": f"Bearer {TURBOSMS_TOKEN}"}
+#         try:
+#             # Используем метод для получения отправителей
+#             async with session.get(
+#                     "https://api.turbosms.ua/user/senders.json",  # Этот endpoint может не существовать для SMS
+#                     headers=headers,
+#                     ssl=ssl_context
+#             ) as resp:
+#                 if resp.status == 200:
+#                     data = await resp.json()
+#                     logger.info(f"Available SMS senders: {data}")
+#                     return data
+#                 else:
+#                     logger.error(f"SMS senders check failed: {resp.status}")
+#                     response_text = await resp.text()
+#                     logger.error(f"Response: {response_text}")
+#                     return None
+#         except Exception as e:
+#             logger.error(f"Exception during SMS senders check: {e}")
+#             return None
+#
+#
+# # Функция для получения списка доступных отправителей
+# async def get_available_senders():
+#     """Получение списка доступных отправителей"""
+#     ssl_context = ssl.create_default_context()
+#     ssl_context.check_hostname = False
+#     ssl_context.verify_mode = ssl.CERT_NONE
+#
+#     async with aiohttp.ClientSession() as session:
+#         headers = {"Authorization": f"Bearer {TURBOSMS_TOKEN}"}
+#         try:
+#             async with session.get(
+#                     "https://api.turbosms.ua/user/senders.json",
+#                     headers=headers,
+#                     ssl=ssl_context
+#             ) as resp:
+#                 if resp.status == 200:
+#                     data = await resp.json()
+#                     logger.info(f"Available senders: {data}")
+#                     return data
+#                 else:
+#                     logger.error(f"Senders check failed: {resp.status}")
+#                     return None
+#         except Exception as e:
+#             logger.error(f"Exception during senders check: {e}")
+#             return None
+#
+#
+# # Дополнительная функция для проверки баланса TurboSMS
+# async def check_turbosms_balance():
+#     """Проверка баланса в TurboSMS для диагностики"""
+#     ssl_context = ssl.create_default_context()
+#     ssl_context.check_hostname = False
+#     ssl_context.verify_mode = ssl.CERT_NONE
+#
+#     async with aiohttp.ClientSession() as session:
+#         headers = {"Authorization": f"Bearer {TURBOSMS_TOKEN}"}
+#         try:
+#             async with session.get(
+#                     "https://api.turbosms.ua/user/balance.json",
+#                     headers=headers,
+#                     ssl=ssl_context
+#             ) as resp:
+#                 if resp.status == 200:
+#                     data = await resp.json()
+#                     logger.info(f"TurboSMS balance: {data}")
+#                     return data
+#                 else:
+#                     logger.error(f"Balance check failed: {resp.status}")
+#                     return None
+#         except Exception as e:
+#             logger.error(f"Exception during balance check: {e}")
+#             return None

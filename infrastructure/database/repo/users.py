@@ -51,12 +51,3 @@ class UserRepo(BaseRepo):
         return result.scalar_one()
 
 
-class CountSelectUser(BaseRepo):
-    async def count_users(self):
-        """
-        Selects all users (user_id and username) from the database and returns them as a list of tuples.
-        """
-        stmt = select(User.user_id, User.username)  # Выбираем user_id и username
-        result = await self.session.execute(stmt)
-        return [(row.user_id, row.username) for row in result]
-
