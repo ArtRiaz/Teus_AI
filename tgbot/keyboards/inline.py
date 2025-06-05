@@ -22,11 +22,11 @@ def start_keyboard_user_db():
 
 def answer_list_ikb():
     ikb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="1 Question", callback_data="first")],
-        [InlineKeyboardButton(text="2 Question", callback_data="second")],
-        [InlineKeyboardButton(text="3 Question", callback_data="third")],
-        [InlineKeyboardButton(text="4 Question", callback_data="four")],
-        [InlineKeyboardButton(text="5 Question", callback_data="five")],
+        [InlineKeyboardButton(text="Де брати документи", callback_data="first")],
+        [InlineKeyboardButton(text="Де завантаження", callback_data="second")],
+        [InlineKeyboardButton(text="Куди мені їхати", callback_data="third")],
+        [InlineKeyboardButton(text="Що мені потрібно відправити для пропуску", callback_data="four")],
+        [InlineKeyboardButton(text="Не працює посилання на навігацію", callback_data="five")],
         [InlineKeyboardButton(text="Мені потрібна допомога зв'язок AI", callback_data="connect_ai")],
         [InlineKeyboardButton(text="Складне питання", callback_data="difficult_answer")],
         [InlineKeyboardButton(text="Назад", callback_data="back_main")]
