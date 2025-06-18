@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 auth_router = Router()
 
 # Загружаем фото для стартового сообщения
-photo = FSInputFile("tgbot/app_main.png")
+photo = FSInputFile("tgbot/Support.png")
 video = FSInputFile("tgbot/IMG_5671.MP4")
 
 data = [1064938479, "is_active"]
@@ -45,11 +45,13 @@ data = [1064938479, "is_active"]
 #     waiting_code = State()
 
 
-caption_ukr = ("Ласкаво просимо до Teus – вашого надійного партнера у світі логістики"
-               "Ми перетворюємо складність доставки на простоту рішень"
-               "У динамічному світі сучасної торгівлі кожна хвилина має значення. Компанія Teus розуміє це як ніхто "
-               "інший. Ми – це команда професіоналів, які об'єднали багаторічний досвід, передові технології та "
-               "пристрасть до досконалості, щоб забезпечити безперебійну роботу вашого бізнесу.")
+caption_ukr = ("Компанія TEUS - це інтегратор та інноватор логістичних послуг, що розробляє комплексні логістичні "
+               "рішення для ефективності бізнесу Клієнтів.\n\n"
+               "Наша мета: спростити та зробити доступною міжнародну логістику для українських компаній, забезпечуючи "
+               "стабільні та ефективні ланцюги постачання з будь-якої точки світу та в будь-яку точку світу.\n\n"
+               "Для цього ми використовуємо інноваційні рішення, передові технології та сучасні підходи, щоб надати "
+               "кожній компанії, незалежно від її масштабу, можливість керувати своїми ланцюгами постачання на рівні "
+               "провідних світових гравців.")
 
 
 @auth_router.message(CommandStart())
@@ -62,8 +64,6 @@ async def start(message: Message):
 @auth_router.callback_query(F.data == "back_main")
 async def answer_list(callback: CallbackQuery):
     # Удаляем текущее сообщение и отправляем новое
-    await callback.message.delete()
-    await callback.message.answer("Зачикайте ...")
     await callback.message.answer_video(video, caption=caption_ukr, reply_markup=start_keyboard_user_db())
     # await callback.message.answer_photo(
     #     photo,

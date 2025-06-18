@@ -16,7 +16,13 @@ import redis.asyncio as redis
 import json
 import os
 
-photo = FSInputFile("tgbot/app_main.png")
+
+photo_menu = FSInputFile("tgbot/Support.png")
+photo_one = FSInputFile("tgbot/one.png")
+photo_two = FSInputFile("tgbot/two.png")
+photo_three = FSInputFile("tgbot/three.png")
+photo_four = FSInputFile("tgbot/four.png")
+
 
 answer_router = Router()
 
@@ -26,8 +32,10 @@ async def answer_list(callback: CallbackQuery):
     # Удаляем текущее сообщение и отправляем новое
     await callback.message.delete()
     await callback.message.answer_photo(
-        photo,
-        caption="Description",
+        photo_menu,
+        caption="Telegram-Bot підтримки TEUS допомагає водіям швидко вирішити проблеми з робочими питаннями: від "
+                "збоїв у програмі до специфікацій на замовленнях. Бот має готові відповіді на часті звернення та "
+                "можливість миттєво контактувати з підтримкою - все в одному повідомленні без дзвінків.",
         reply_markup=answer_list_ikb()
     )
 
@@ -37,8 +45,8 @@ async def answer_first(callback: CallbackQuery):
     # Редактируем существующее сообщение
     await callback.message.edit_media(
         media=InputMediaPhoto(
-            media=photo,
-            caption="Ответ на первый вопрос"
+            media=photo_one,
+            caption="На весовой, и прикрепить локацию, або дивитись в розділі маршрутна інструкція"
         ),
         reply_markup=back_list()
     )
@@ -48,8 +56,9 @@ async def answer_first(callback: CallbackQuery):
 async def answer_second(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(
-            media=photo,
-            caption="Ответ на второй вопрос"
+            media=photo_two,
+            caption="Інформацію щодо місця розвантаження/навантаження та маршруту руху отримувати у "
+                    "експедитора/портового оператора, або у розділі відкритої заявки Teus Driver "
         ),
         reply_markup=back_list()
     )
@@ -59,8 +68,10 @@ async def answer_second(callback: CallbackQuery):
 async def answer_third(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(
-            media=photo,
-            caption="Ответ на третий вопрос"
+            media=photo_three,
+            caption="Рух до порту починати за наявності перепустки та товаро-транспортних документів. Перед "
+                    "початком руху уточнити у замовника адресу розташування КПП для в’їзду на територію "
+                    "порту/терміналу, або в розділі мапа Teus Driver "
         ),
         reply_markup=back_list()
     )
@@ -70,8 +81,10 @@ async def answer_third(callback: CallbackQuery):
 async def answer_four(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(
-            media=photo,
-            caption="Ответ на четвертый вопрос"
+            media=photo_four,
+            caption="Рух до порту починати за наявності перепустки та товаро-транспортних документів. Перед "
+                    "початком руху уточнити у замовника адресу розташування КПП для в’їзду на територію "
+                    "порту/терміналу, або QR code чи Barcode у розділі профіля Teus Driver "
         ),
         reply_markup=back_list()
     )
@@ -81,8 +94,8 @@ async def answer_four(callback: CallbackQuery):
 async def answer_five(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(
-            media=photo,
-            caption="Ответ на пятый вопрос"
+            media=photo_menu,
+            caption="Зателефонуйте менеджеру або обирть кнопку дзвінка у розділі допомоги"
         ),
         reply_markup=back_list()
     )
@@ -95,17 +108,17 @@ async def close_message(callback: CallbackQuery):
 
 
 # Дополнительно: обработчик для кнопки "Назад" - удаляем сообщение
-@answer_router.callback_query(F.data == "back")
-async def back_to_menu(callback: CallbackQuery):
-    # Удаляем текущее сообщение
-    await callback.message.delete()
-
-    # Отправляем новое сообщение с главным меню
-    await callback.message.answer_photo(
-        photo,
-        caption="Description",
-        reply_markup=answer_list_ikb()
-    )
+# @answer_router.callback_query(F.data == "back")
+# async def back_to_menu(callback: CallbackQuery):
+#     # Удаляем текущее сообщение
+#     await callback.message.delete()
+#
+#     # Отправляем новое сообщение с главным меню
+#     await callback.message.answer_photo(
+#         photo,
+#         caption="Description",
+#         reply_markup=answer_list_ikb()
+#     )
 
 
 
