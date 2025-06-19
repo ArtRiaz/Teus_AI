@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 auth_router = Router()
 
 # Загружаем фото для стартового сообщения
-photo = FSInputFile("tgbot/Support.png")
+photo = FSInputFile("tgbot/main.png")
 video = FSInputFile("tgbot/IMG_5671.MP4")
 
 data = [1064938479, "is_active"]
@@ -57,8 +57,8 @@ caption_ukr = ("Компанія TEUS - це інтегратор та інно�
 @auth_router.message(CommandStart())
 async def start(message: Message):
     user_id = message.from_user.id
-    await message.answer_video(video, caption=caption_ukr, reply_markup=start_keyboard_user_db())
-    # await message.answer_photo(photo, caption=caption_ukr, reply_markup=start_keyboard_user_db())
+    # await message.answer_video(video, caption=caption_ukr, reply_markup=start_keyboard_user_db())
+    await message.answer_photo(photo, caption=caption_ukr, reply_markup=start_keyboard_user_db())
 
 
 @auth_router.callback_query(F.data == "back_main")
