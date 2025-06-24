@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from aiogram import Router, types, Bot, F
 from aiogram.filters import CommandStart, CommandObject, StateFilter, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton, \
-    KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InputMediaPhoto
+    KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InputMediaPhoto, InputMediaVideo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -18,10 +18,10 @@ import os
 
 
 photo_menu = FSInputFile("tgbot/Support.png")
-photo_one = FSInputFile("tgbot/one.png")
-photo_two = FSInputFile("tgbot/two.png")
-photo_three = FSInputFile("tgbot/three.png")
-photo_four = FSInputFile("tgbot/four.png")
+video_one = FSInputFile("tgbot/two.mp4")
+video_two = FSInputFile("tgbot/first.mp4")
+video_three = FSInputFile("tgbot/three.mp4")
+video_four = FSInputFile("tgbot/four.mp4")
 
 
 answer_router = Router()
@@ -44,9 +44,12 @@ async def answer_list(callback: CallbackQuery):
 async def answer_first(callback: CallbackQuery):
     # Редактируем существующее сообщение
     await callback.message.edit_media(
-        media=InputMediaPhoto(
-            media=photo_one,
-            caption="На весовой, и прикрепить локацию, або дивитись в розділі маршрутна інструкція"
+        media=InputMediaVideo(
+            media=video_one,
+            caption="- Де Брати Документи\n\n"
+                    "Документи для завантаження автомобіля та додатковий ордер знаходяться на ваговій.Адресу можно "
+                    "переглянути в розділі інструкції в профілі Teus Driver або при застосуванні цієї кнопки.\n\n"
+                    "кнопка 'відкрити на мапі'(координаты весовой)"
         ),
         reply_markup=back_list()
     )
@@ -55,10 +58,11 @@ async def answer_first(callback: CallbackQuery):
 @answer_router.callback_query(F.data == "second")
 async def answer_second(callback: CallbackQuery):
     await callback.message.edit_media(
-        media=InputMediaPhoto(
-            media=photo_two,
-            caption="Інформацію щодо місця розвантаження/навантаження та маршруту руху отримувати у "
-                    "експедитора/портового оператора, або у розділі відкритої заявки Teus Driver "
+        media=InputMediaVideo(
+            media=video_two,
+            caption="- Де завантаження\n\n"
+                    "Інформацію щодо місця розвантаження/навантаження та марш"
+                    "руту руху отримувати у експедитора/портового оператора\n\n,або у розділі відкритої заявки Teus Drive"
         ),
         reply_markup=back_list()
     )
@@ -67,11 +71,14 @@ async def answer_second(callback: CallbackQuery):
 @answer_router.callback_query(F.data == "third")
 async def answer_third(callback: CallbackQuery):
     await callback.message.edit_media(
-        media=InputMediaPhoto(
-            media=photo_three,
-            caption="Рух до порту починати за наявності перепустки та товаро-транспортних документів. Перед "
-                    "початком руху уточнити у замовника адресу розташування КПП для в’їзду на територію "
-                    "порту/терміналу, або в розділі мапа Teus Driver "
+        media=InputMediaVideo(
+            media=video_three,
+            caption="- Куди мені їхати\n\n"
+                    "Рух до порту дозволено лише за наявності перепустки та товаро-транспортних документів.Перед "
+                    "початком завантаження необхідно надіслати скан-копії документів. Документи для завантаження "
+                    "автомобіля та додатковий ордер знаходяться на ваговій.Перед виїздом необхідно уточнити у "
+                    "замовника адресу розташування КПП для в’їзду на територію порту/терміналу\n\n"
+                    "або перевірити наявність QR-коду чи штрих-коду у розділі профілю додатку Teus Driver."
         ),
         reply_markup=back_list()
     )
@@ -80,11 +87,12 @@ async def answer_third(callback: CallbackQuery):
 @answer_router.callback_query(F.data == "four")
 async def answer_four(callback: CallbackQuery):
     await callback.message.edit_media(
-        media=InputMediaPhoto(
-            media=photo_four,
-            caption="Рух до порту починати за наявності перепустки та товаро-транспортних документів. Перед "
+        media=InputMediaVideo(
+            media=video_four,
+            caption="Що потрібно відправити для пропуску\n\n"
+                    "Рух до порту починати за наявності перепустки та товаро-транспортних документів. Перед "
                     "початком руху уточнити у замовника адресу розташування КПП для в’їзду на територію "
-                    "порту/терміналу, або QR code чи Barcode у розділі профіля Teus Driver "
+                    "порту/терміналу,\n\n або QR code чи Barcode у розділі профіля Teus Driver "
         ),
         reply_markup=back_list()
     )

@@ -65,11 +65,11 @@ async def start(message: Message):
 async def answer_list(callback: CallbackQuery):
     # Удаляем текущее сообщение и отправляем новое
     await callback.message.answer_video(video, caption=caption_ukr, reply_markup=start_keyboard_user_db())
-    # await callback.message.answer_photo(
-    #     photo,
-    #     caption=caption_ukr,
-    #     reply_markup=start_keyboard_user_db()
-    # )
+    await callback.message.answer_photo(
+         photo,
+        caption=caption_ukr,
+         reply_markup=start_keyboard_user_db()
+     )
 
 # @auth_router.callback_query(F.data == "auth")
 # async def auth_system(callback: CallbackQuery, state: FSMContext):
