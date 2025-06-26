@@ -28,7 +28,7 @@ def answer_list_ikb():
         [InlineKeyboardButton(text="❓Де брати документи на завантаження", callback_data="four")],
         [InlineKeyboardButton(text="❓Не працює навігація", callback_data="five")],
         [InlineKeyboardButton(text="🆘 Мені потрібна допомога зв'язок AI", callback_data="connect_ai")],
-        [InlineKeyboardButton(text="↩ ️Назад", callback_data="back_main")]
+        [InlineKeyboardButton(text="↩️ Назад", callback_data="back_main")]
     ]
     )
     return ikb
