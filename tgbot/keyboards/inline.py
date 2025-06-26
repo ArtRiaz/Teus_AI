@@ -46,7 +46,7 @@ def get_exit_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="❌ Завершити чат з AI")],
-            [KeyboardButton(text="☎️ Складне питання", url="https://t.me/")]
+            [KeyboardButton(text="☎️ Складне питання")]
         ],
         resize_keyboard=True,
         one_time_keyboard=False

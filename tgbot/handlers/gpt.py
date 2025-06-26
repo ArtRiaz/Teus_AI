@@ -210,6 +210,29 @@ async def start_ai_chat(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AIStates.chatting)
 
 
+@gpt_router.message(F.text == "☎️ Складне питання")
+async def exit_ai_chat(message: Message, state: FSMContext):
+    # Очищаем состояние (и историю разговора)
+    await state.clear()
+
+    # Убираем Reply клавиатуру
+    await message.answer(
+        "✅ **Чат з AI завершено**\n\n"
+        "Перехід на звʼязок з нашим оператором\n",
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    kb = InlineKeyboardBuilder()
+    kb.row(InlineKeyboardButton(text="Зв'язок з оператором", url="https://t.me/"))
+    kb.row(InlineKeyboardButton(text="↩️ Назад у головне меню", callback_data="back_main"))
+
+    await message.answer(
+        "💬 **Потрібна допомога?**\nНатисніть кнопку та напишить нашому оператору",
+        reply_markup=kb.as_markup()
+    )
+
+
 # Обработчик для кнопки выхода из чата
 @gpt_router.message(F.text == "❌ Завершити чат з AI")
 async def exit_ai_chat(message: Message, state: FSMContext):
