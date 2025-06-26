@@ -16,5 +16,4 @@ venv.bak/
 .idea/
 .env
 .env
-
-text
+/text
