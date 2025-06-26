@@ -107,7 +107,7 @@ async def answer_five(callback: CallbackQuery):
     await callback.message.edit_media(
         media=InputMediaPhoto(
             media=photo_menu,
-            caption="<b>Не працює навігація</b>"
+            caption="<b>Не працює навігація ❓</b>\n\n"
                     "Схема проїзда 1) лаба (вивантаження)- КПП №2 - Ваги та склади і причали (с геолокацієй)."
         ),
         reply_markup=back_list()
