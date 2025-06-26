@@ -14,7 +14,7 @@ def start_keyboard_user():
 
 def start_keyboard_user_db():
     ikb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📝Список часто поставлених запитань", callback_data="menu")]
+        [InlineKeyboardButton(text="📝 Список часто поставлених запитань", callback_data="menu")]
     ]
     )
     return ikb
@@ -22,14 +22,13 @@ def start_keyboard_user_db():
 
 def answer_list_ikb():
     ikb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="❓Де брати документи", callback_data="first")],
-        [InlineKeyboardButton(text="❓Де завантаження", callback_data="second")],
-        [InlineKeyboardButton(text="❓Куди мені їхати", callback_data="third")],
-        [InlineKeyboardButton(text="❓Що потрібно відправити для пропуску", callback_data="four")],
-        [InlineKeyboardButton(text="❓Не працює посилання на навігацію", callback_data="five")],
-        [InlineKeyboardButton(text="🆘Мені потрібна допомога зв'язок AI", callback_data="connect_ai")],
-        [InlineKeyboardButton(text="☎️Складне питання", callback_data="difficult_answer")],
-        [InlineKeyboardButton(text="↩️Назад", callback_data="back_main")]
+        [InlineKeyboardButton(text="❓Що відправити для пропуску", callback_data="first")],
+        [InlineKeyboardButton(text="❓Маршрут на вигрузку", callback_data="second")],
+        [InlineKeyboardButton(text="❓Маршрут на погрузку", callback_data="third")],
+        [InlineKeyboardButton(text="❓Де брати документи на завантаження", callback_data="four")],
+        [InlineKeyboardButton(text="❓Не працює навігація", callback_data="five")],
+        [InlineKeyboardButton(text="🆘 Мені потрібна допомога зв'язок AI", callback_data="connect_ai")],
+        [InlineKeyboardButton(text="↩ ️Назад", callback_data="back_main")]
     ]
     )
     return ikb
@@ -37,7 +36,7 @@ def answer_list_ikb():
 
 def back_list():
     ikb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="↩️Назад", callback_data="menu")]
+        [InlineKeyboardButton(text="↩️ Назад", callback_data="menu")]
     ]
     )
     return ikb
@@ -46,7 +45,8 @@ def back_list():
 def get_exit_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="❌ Завершити чат з AI")]
+            [KeyboardButton(text="❌ Завершити чат з AI")],
+            [KeyboardButton(text="☎️ Складне питання", url="https://t.me/")]
         ],
         resize_keyboard=True,
         one_time_keyboard=False
